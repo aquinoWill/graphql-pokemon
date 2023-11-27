@@ -1,3 +1,5 @@
+'use client'
+
 import * as React from 'react'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Unstable_Grid2'
@@ -9,7 +11,38 @@ import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
 import MediaCard from '@/app/components/MediaCard'
 
+import gql from 'graphql-tag'
+import { useQuery } from '@apollo/react-hooks'
+import type { Query } from '@favware/graphql-pokemon'
+import { client } from '@/app/server/ApolloClient/ApolloClient'
+
+interface GraphQLPokemonResponse<K extends keyof Omit<Query, '__typename'>> {
+  data: Record<K, Omit<Query[K], '__typename'>>;
+}
+
+const GET_POKEMON_DETAILS = gql`
+  {
+    getPokemon(pokemon: dragonite) {
+      sprite
+      num
+      species
+      color
+    }
+  }
+`
+
 export default function HomePage() {
+  const { loading, error, data } = useQuery<
+    GraphQLPokemonResponse<'getPokemon'>
+  >(GET_POKEMON_DETAILS, {
+    client: client
+  })
+
+  if (loading) return 'Loading...'
+  if (error) return `Error! ${error.message}`
+
+  console.log('Pokemon: ', data)
+
   return (
     <Box sx={{ display: 'flex' }}>
       <div>
